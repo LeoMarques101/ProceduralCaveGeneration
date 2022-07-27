@@ -108,7 +108,7 @@ This project is based on [Sebastian Lague´s procedural cave generation tutorial
 </details>
 
 ### Todo List:
- - [ ] Monster spawn script
+ - [x] Monster spawn script
  - [ ] Beautify the cave floor (diferent tiles, itens and etc..)
  - [ ] Improve the randomness of tiles
 
