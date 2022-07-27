@@ -8,6 +8,8 @@ local ALAVANCA = {
     [9828] = {usada = 9827},
 }
 
+local MonstersSpawns = {}
+
 local Styles={
     ["Rock Mountain"] = {
         Wall = {919},   --wall
@@ -110,7 +112,13 @@ local MAPS = {
         playerSpawn ={x=55, y=55, size=10},
         map = {},
         remover_primeira_camada = true,
-        style = Styles["Earth"]
+        style = Styles["Earth"],
+        spawnId = 1,
+        monsters = {
+            {name = "Rotworm", amount = 200, time = 1000},
+            {name = "Carrion Worm", amount = 100, time = 10000},
+            {name = "Rotworm Queen", amount = 1, time = 60000},
+        }
     },
     [2] = {
         startX = 1500, startY = 300, startZ = 7,
@@ -121,7 +129,14 @@ local MAPS = {
         playerSpawn ={x=55, y=55, size=10},
         map = {},
         remover_primeira_camada = true,
-        style = Styles["Earth (stone border)"]
+        style = Styles["Earth (stone border)"],
+        spawnId = 2,
+        monsters = {
+            {name = "Dwarf", amount = 200, time = 1000},
+            {name = "Dwarf Soldier", amount = 100, time = 10000},
+            {name = "Dwarf Guard", amount = 30, time = 20000},
+            {name = "Dwarf Geomancer", amount = 10, time = 60000},
+        }
     },
     [3] = {
         startX = 1500, startY = 300, startZ = 7,
@@ -132,7 +147,12 @@ local MAPS = {
         playerSpawn ={x=55, y=55, size=10},
         map = {},
         remover_primeira_camada = true,
-        style = Styles["Rock Mountain"]
+        style = Styles["Rock Mountain"],
+        spawnId = 3,
+        monsters = {
+            {name = "Dragon", amount = 100, time = 1000},
+            {name = "Dragon Lord", amount = 20, time = 10000},
+        }
     },
     [4] = {
         startX = 1500, startY = 300, startZ = 7,
@@ -144,7 +164,11 @@ local MAPS = {
         map = {},
 
         remover_primeira_camada = true,
-        style = Styles["Earth Mountain"]
+        style = Styles["Earth Mountain"],
+        spawnId = 4,
+        monsters = {
+            {name = "Hydra", amount = 200, time = 1000},
+        }
     },
     [5] = {
         startX = 1500, startY = 300, startZ = 7,
@@ -155,7 +179,12 @@ local MAPS = {
         playerSpawn ={x=55, y=55, size=10},
         map = {},
         remover_primeira_camada = true,
-        style = Styles["Darkest Mud (lava)"]
+        style = Styles["Darkest Mud (lava)"],
+        spawnId = 5,
+        monsters = {
+            {name = "Fire Elemental", amount = 100, time = 1000},
+            {name = "Demon", amount = 100, time = 1000},
+        }
     },
 }
 
@@ -549,19 +578,21 @@ function spawnMap(mapSelect)
     for x = 0, mapSelect.width, 1 do
         for y = 0, mapSelect.height, 1 do
 
-            
+            -- skip player spawn
             if x >= mapSelect.playerSpawn.x and x <= (mapSelect.playerSpawn.x + mapSelect.playerSpawn.size) 
             and y >= mapSelect.playerSpawn.y and y <= (mapSelect.playerSpawn.y + mapSelect.playerSpawn.size) then
                 goto skip
             end
 
+
+            --remove old tiles
             local mapValor = mapSelect.map[x][y]
             local mapLoc = {x = x + mapSelect.startX,y = y + mapSelect.startY,z = mapSelect.startZ}
             local t = Tile(mapLoc)
             t:remove()
 
 
-            
+            --add cave tiles
             if mapValor == 0 then
                 local tiles = BorderizeWalls(mapSelect,x,y)
                 if #tiles > 0 then
@@ -582,7 +613,7 @@ function spawnMap(mapSelect)
                     end
                 end
 
-            else
+            else --add wall tiles
                 if #mapSelect.style.Wall > 1 then
                     Game.createItem(mapSelect.style.Wall[math.random(#mapSelect.style.Wall)], 1, mapLoc)
                 else
@@ -594,6 +625,7 @@ function spawnMap(mapSelect)
         end
     end
 end
+
 
 function BorderizeWalls(map_select,x,y)
     local tiles = {}
@@ -695,6 +727,100 @@ function BorderizeWalls(map_select,x,y)
     return tiles
 end
 
+function RemoveOlderSpawns(map_select)
+    local spawnId
+    for x = 0, map_select.width, 1 do
+        for y = 0, map_select.height, 1 do
+            local mapLoc = {x = x + map_select.startX,y = y + map_select.startY,z = map_select.startZ}
+            local t = Tile(mapLoc)
+            local creatures = t:getCreatures()
+            if creatures then
+                for index, creature in ipairs(creatures) do
+                    if not creature:isPlayer() then
+                        local creatureID = creature:getId()
+
+                        if MonstersSpawns[creatureID] then
+                            spawnId = MonstersSpawns[creatureID].spawnId
+                            MonstersSpawns[creatureID] = nil
+                        end
+                        creature:remove()
+                    end
+                end
+            end
+
+        end
+    end
+
+    --delete the other respawns if the creature was not found:
+    for key, m in pairs(MonstersSpawns) do
+        if m.spawnId == spawnId then
+            MonstersSpawns[key] = nil
+        end
+    end
+
+end
+
+function AddNewSpawns(map_select)
+    for index, monster in ipairs(map_select.monsters) do
+        for i = 1, monster.amount, 1 do
+
+            local m = nil
+            while m == nil do
+                local mapvalue = 1
+                local randX = 0
+                local randY = 0
+                while mapvalue ~= 0 do
+                    randX =math.random(0,map_select.width)
+                    randY =math.random(0,map_select.height)
+                    mapvalue = map_select.map[randX][randY]
+                end
+                m = Game.createMonster(monster.name,{x=randX + map_select.startX,y=randY+map_select.startY,z=map_select.startZ})
+            end
+
+            if m then
+                MonstersSpawns[m:getId()] = {pos=m:getPosition(), spawnId=map_select.spawnId, time=monster.time}
+                m:registerEvent("MonsterSpawn")
+            end
+
+        end
+    end
+end
+
+function SpawnMonsterEvent(name,pos,key)
+	if MonstersSpawns[key] then
+		local monster = Game.createMonster(name, pos)
+		if monster then
+			monster:registerEvent("MonsterSpawn")
+			local spawnId = MonstersSpawns[key].spawnId
+            local time = MonstersSpawns[key].time
+            MonstersSpawns[key] = nil
+            MonstersSpawns[monster:getId()] = {pos=monster:getPosition(), spawnId=spawnId, time=time}
+		else
+			print("Nao deu para respawnar, tentando em 5 segundos")
+			addEvent(SpawnMonsterEvent, 5000, name, pos, key)
+		end
+	else
+		--print("Spawn not found")
+	end
+    return true
+end
+
+
+local creatureevent = CreatureEvent("MonsterSpawn")
+function creatureevent.onDeath(creature, corpse, killer, mostDamageKiller, lastHitUnjustified, mostDamageUnjustified)
+
+    for key, spawn in pairs(MonstersSpawns) do
+        if key == creature:getId() then
+            local event = addEvent(SpawnMonsterEvent, spawn.time + math.random(1,3)*1000, creature:getName(), spawn.pos, key)
+			return true
+        end
+    end
+	return true
+
+end
+creatureevent:register()
+
+
 local ProceduralMap = Action()
 function ProceduralMap.onUse(player, item, fromPosition, target, toPosition, isHotkey)
     item:transform(ALAVANCA[item.itemid].usada)
@@ -702,7 +828,10 @@ function ProceduralMap.onUse(player, item, fromPosition, target, toPosition, isH
     local MAP_SELECT = MAPS[item.actionid - MAPS_fromaid]
 
     MAP_SELECT.map = GenerateMap(MAP_SELECT)
+    RemoveOlderSpawns(MAP_SELECT)
     spawnMap(MAP_SELECT)
+    AddNewSpawns(MAP_SELECT)
+
 
     --update the minimap
     for y = 0, MAP_SELECT.width, 10 do
