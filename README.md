@@ -13,6 +13,7 @@ This project is based on [Sebastian Lague´s procedural cave generation tutorial
   <summary>Exemple</summary>
   
   from: (x=1500,y=300,z=7) to (x=1620,y=420,z=7)
+  
   ![Exemple](imgs/img1.png)
 
 </details>
@@ -23,6 +24,7 @@ This project is based on [Sebastian Lague´s procedural cave generation tutorial
   <summary>Exemple</summary>
   
   from: (x=1555,y=355,z=7) to (x=1565,y=365,z=7)
+  
   ![Exemple](imgs/img2.JPG)
   
 </details>
@@ -32,6 +34,7 @@ This project is based on [Sebastian Lague´s procedural cave generation tutorial
   <summary>Exemple</summary>
   
   from: (x=1555,y=355,z=7) to (x=1565,y=365,z=7)
+  
   ![Exemple](imgs/img3.JPG)
 
 </details>
