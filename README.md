@@ -1,7 +1,7 @@
 # Procedural Cave Generation
 Open Tibia Procedural Cave Generation (Cellular Automata)
 
-![Exemple](imgs/gifexemple.gif)
+![Exemple](imgs/gifExemple.gif)
 
 This project is based on [Sebastian Lague´s procedural cave generation tutorial.](https://youtube.com/playlist?list=PLFt_AvWsXl0eZgMK_DT5_biRkWXftAOf9)
 
